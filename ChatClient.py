@@ -59,13 +59,20 @@ class ProxyHandler(BaseHTTPRequestHandler):
     # Fungsi untuk berkomunikasi dengan server chat melalui socket TCP
     def communicate_with_socket(self, request_text):
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            s.settimeout(5)  # Set timeout 5 detik untuk menghindari koneksi menggantung
             s.connect((CHAT_SERVER_HOST, CHAT_SERVER_PORT))
             s.sendall(request_text.encode('utf-8'))
             response = b""
             while True:
-                part = s.recv(1024)
-                response += part
-                if len(part) < 1024:
+                try:
+                    part = s.recv(1024)
+                    if not part:
+                        break
+                    response += part
+                    if len(part) < 1024:
+                        break
+                except socket.timeout:
+                    print("Timeout saat menerima data dari server chat")
                     break
         # Mengembalikan isi body response HTTP dari server chat
         return response.decode('utf-8').split('\r\n\r\n', 1)[-1]

@@ -104,7 +104,7 @@
                 .then(renderMessages) // Tampilkan pesan yang diterima
                 .catch(err => console.error("Gagal ambil pesan:", err)); // Tangani error jika gagal
         }
-        setInterval(fetchMessages); // Panggil fetchMessages secara berkala (default interval)
+        setInterval(fetchMessages, 1000); // Panggil fetchMessages secara berkala dengan interval 1 detik
         fetchMessages(); // Panggil fetchMessages pertama kali saat halaman dimuat
     </script>
 

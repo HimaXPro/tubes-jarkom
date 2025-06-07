@@ -12,6 +12,8 @@ class ChatServer:
         self.clients = []
         # List untuk menyimpan pesan chat
         self.messages = []
+        # Maksimal jumlah pesan yang disimpan
+        self.max_messages = 100
 
     def start(self):
         # Mengikat socket ke host dan port
@@ -74,6 +76,9 @@ class ChatServer:
                 body = '\r\n'.join(lines[empty_line_index+1:])
                 # Menyimpan pesan
                 self.messages.append(body)
+                # Batasi jumlah pesan agar tidak membengkak
+                if len(self.messages) > self.max_messages:
+                    self.messages.pop(0)
                 # Mengirim response sukses
                 return "HTTP/1.1 200 OK\r\n\r\nPesan diterima"
             except ValueError:

@@ -193,8 +193,8 @@
             }
         });
 
-        // Panggil fetchMessages secara berkala untuk memperbarui pesan
-        setInterval(fetchMessages);
+        // Panggil fetchMessages secara berkala untuk memperbarui pesan dengan interval 1 detik
+        setInterval(fetchMessages, 1000);
         fetchMessages(); // Panggil fetchMessages pertama kali saat halaman dimuat
     </script>
 
