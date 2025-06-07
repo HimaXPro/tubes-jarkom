@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>Pesan GET</title>
+    <style>
+        /* Mengatur gaya untuk seluruh body halaman */
+        body {
+            font-family: Arial;
+            padding: 20px;
+            background: #f4f4f4;
+            /* Warna latar belakang abu-abu muda */
+        }
+
+        /* Kontainer utama untuk menampilkan pesan chat */
+        #chat-container {
+            height: 400px;
+            /* Tinggi tetap untuk area chat */
+            overflow-y: auto;
+            /* Scroll vertikal jika konten melebihi tinggi */
+            border: 1px solid #ccc;
+            /* Border abu-abu */
+            background: #fff;
+            /* Latar belakang putih */
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 10px;
+            /* Sudut membulat */
+            display: flex;
+            flex-direction: column;
+            /* Mengatur pesan secara vertikal */
+        }
+
+        /* Gaya untuk setiap pesan chat */
+        .chat-message {
+            max-width: 70%;
+            /* Lebar maksimal pesan */
+            padding: 10px;
+            border-radius: 10px;
+            /* Sudut membulat */
+            margin: 5px 0;
+            word-wrap: break-word;
+            /* Memecah kata panjang agar tidak keluar kontainer */
+        }
+
+        /* Gaya khusus untuk pesan yang dikirim oleh pengirim */
+        .sender {
+            align-self: flex-start;
+            /* Pesan rata kiri */
+            background: #dddddd;
+            /* Warna latar belakang abu-abu */
+            text-align: left;
+            /* Teks rata kiri */
+        }
+
+        /* Komentar: Pesan penerima tidak ditampilkan (tidak dirender) */
+
+        /* Gaya untuk menampilkan timestamp pada pesan */
+        .timestamp {
+            font-size: 12px;
+            /* Ukuran font kecil */
+            color: #666;
+            /* Warna abu-abu gelap */
+            margin-top: 5px;
+            /* Jarak atas */
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>Chat GET</h1> <!-- Judul halaman -->
+
+    <div id="chat-container"></div> <!-- Tempat menampilkan pesan chat -->
+
+    <script>
+        // URL server untuk mengambil pesan chat
+        const SERVER_URL = "http://127.0.0.1:5000/chat";
+
+        // Fungsi untuk menampilkan pesan ke dalam kontainer chat
+        function renderMessages(data) {
+            const container = document.getElementById("chat-container");
+            container.innerHTML = ""; // Kosongkan kontainer sebelum menampilkan pesan baru
+            data.trim().split("\n").forEach(line => {
+                // Cek apakah baris pesan berasal dari pengirim (mengandung tanda kurung siku)
+                const isSender = line.includes("]") && line.includes("[") && line.includes("] ");
+                if (!isSender) return; // Lewati pesan penerima (tidak ditampilkan)
+                const div = document.createElement("div"); // Buat elemen div baru untuk pesan
+                div.classList.add("chat-message"); // Tambahkan kelas chat-message
+                div.classList.add("sender"); // Tambahkan kelas sender
+                // Ganti bagian timestamp dengan elemen div khusus untuk styling
+                div.innerHTML = line.replace(/\[(.*?)\]/, "<div class='timestamp'>[$1]</div>");
+                container.appendChild(div); // Tambahkan pesan ke dalam kontainer
+            });
+            // Scroll otomatis ke bawah agar pesan terbaru terlihat
+            container.scrollTop = container.scrollHeight;
+        }
+
+        // Fungsi untuk mengambil pesan dari server
+        function fetchMessages() {
+            fetch(SERVER_URL)
+                .then(res => res.text()) // Ambil response sebagai teks
+                .then(renderMessages) // Tampilkan pesan yang diterima
+                .catch(err => console.error("Gagal ambil pesan:", err)); // Tangani error jika gagal
+        }
+        setInterval(fetchMessages); // Panggil fetchMessages secara berkala (default interval)
+        fetchMessages(); // Panggil fetchMessages pertama kali saat halaman dimuat
+    </script>
+
+</body>
+
+</html>

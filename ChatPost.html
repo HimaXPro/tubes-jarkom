@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>Chat Post</title>
+    <style>
+        /* Mengatur gaya untuk seluruh body halaman */
+        body {
+            font-family: Arial;
+            padding: 20px;
+            background: #f4f4f4;
+            /* Warna latar belakang abu-abu muda */
+        }
+
+        /* Kontainer utama untuk menampilkan pesan chat dengan scroll vertikal */
+        #chat-container {
+            height: 400px;
+            /* Tinggi tetap area chat */
+            overflow-y: auto;
+            /* Scroll vertikal jika konten melebihi tinggi */
+            border: 1px solid #ccc;
+            /* Border abu-abu */
+            background: #fff;
+            /* Latar belakang putih */
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 10px;
+            /* Sudut membulat */
+            display: flex;
+            flex-direction: column;
+            /* Menyusun pesan secara vertikal */
+        }
+
+        /* Gaya untuk setiap pesan chat */
+        .chat-message {
+            max-width: 70%;
+            /* Lebar maksimal pesan */
+            padding: 10px;
+            border-radius: 10px;
+            /* Sudut membulat */
+            margin: 5px 0;
+            word-wrap: break-word;
+            /* Memecah kata panjang agar tidak keluar kontainer */
+        }
+
+        /* Gaya untuk pesan dari pengirim, rata kanan dengan latar hijau */
+        .sender {
+            align-self: flex-end;
+            /* Pesan rata kanan */
+            background: #27cb8c;
+            /* Warna latar hijau */
+            text-align: right;
+            /* Teks rata kanan */
+        }
+
+        /* Gaya untuk pesan dari penerima, rata kiri dengan latar abu-abu */
+        .receiver {
+            align-self: flex-start;
+            /* Pesan rata kiri */
+            background: #e2e3e5;
+            /* Warna latar abu-abu */
+        }
+
+        /* Gaya untuk menampilkan timestamp pada pesan */
+        .timestamp {
+            font-size: 12px;
+            /* Ukuran font kecil */
+            color: #666;
+            /* Warna abu-abu gelap */
+            margin-top: 5px;
+            /* Jarak atas */
+        }
+
+        /* Area input pesan dan tombol kirim */
+        #input-area {
+            display: flex;
+            gap: 10px;
+            /* Jarak antar elemen */
+        }
+
+        /* Input teks pesan */
+        #message-input {
+            flex: 1;
+            /* Mengisi ruang yang tersedia */
+            padding: 10px;
+            font-size: 16px;
+            border-radius: 5px;
+            /* Sudut membulat */
+            border: 1px solid #ccc;
+            /* Border abu-abu */
+        }
+
+        /* Gaya tombol kirim */
+        button {
+            padding: 10px 16px;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+            /* Sudut membulat */
+            background: #007BFF;
+            /* Warna biru */
+            color: white;
+            /* Warna teks putih */
+            cursor: pointer;
+            /* Kursor pointer saat hover */
+        }
+
+        /* Efek hover pada tombol kirim */
+        button:hover {
+            background: #0056b3;
+            /* Warna biru gelap saat hover */
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>Chat Post</h1> <!-- Judul halaman -->
+
+    <!-- Kontainer untuk menampilkan pesan chat -->
+    <div id="chat-container"></div>
+
+    <!-- Area input pesan dan tombol kirim -->
+    <div id="input-area">
+        <input type="text" id="message-input" placeholder="Tulis pesan..." />
+        <button onclick="sendMessage()">Kirim</button>
+    </div>
+
+    <script>
+        // URL server chat proxy
+        const SERVER_URL = "http://127.0.0.1:5000/chat";
+
+        // Fungsi untuk menampilkan pesan ke dalam kontainer chat
+        function renderMessages(data) {
+            const container = document.getElementById("chat-container");
+            container.innerHTML = ""; // Kosongkan kontainer sebelum menampilkan pesan baru
+            // Memisahkan pesan berdasarkan baris dan menampilkan semua pesan
+            data.trim().split("\n").forEach(line => {
+                // Cek apakah pesan berasal dari pengirim (mengandung tanda kurung siku)
+                const isSender = line.includes("]") && line.includes("[") && line.includes("] ");
+                const div = document.createElement("div"); // Buat elemen div baru untuk pesan
+                div.classList.add("chat-message"); // Tambahkan kelas chat-message
+                // Tambahkan kelas sender atau receiver berdasarkan format pesan
+                div.classList.add(isSender ? "sender" : "receiver");
+                // Ganti bagian timestamp dengan elemen div khusus untuk styling
+                div.innerHTML = line.replace(/\[(.*?)\]/, "<div class='timestamp'>[$1]</div>");
+                container.appendChild(div); // Tambahkan pesan ke dalam kontainer
+            });
+            // Scroll otomatis ke bawah agar pesan terbaru terlihat
+            container.scrollTop = container.scrollHeight;
+        }
+
+        // Fungsi untuk mengambil pesan dari server
+        function fetchMessages() {
+            fetch(SERVER_URL)
+                .then(res => res.text()) // Ambil response sebagai teks
+                .then(renderMessages) // Tampilkan pesan yang diterima
+                .catch(err => console.error("Gagal ambil pesan:", err)); // Tangani error jika gagal
+        }
+
+        // Fungsi untuk menambahkan pesan baru ke tampilan chat
+        function appendMessage(message) {
+            const container = document.getElementById("chat-container");
+            const div = document.createElement("div"); // Buat elemen div baru untuk pesan
+            div.classList.add("chat-message", "sender"); // Tambahkan kelas chat-message dan sender
+            const timestamp = new Date().toLocaleTimeString(); // Ambil waktu saat ini
+            div.innerHTML = message + `<div class='timestamp'>[${timestamp}]</div>`; // Tambahkan pesan dan timestamp
+            container.appendChild(div); // Tambahkan pesan ke dalam kontainer
+            container.scrollTop = container.scrollHeight; // Scroll ke bawah otomatis
+        }
+
+        // Fungsi untuk mengirim pesan ke server
+        function sendMessage() {
+            const input = document.getElementById("message-input");
+            const message = input.value.trim(); // Ambil dan bersihkan input pesan
+            if (!message) return; // Jika pesan kosong, hentikan fungsi
+            fetch(SERVER_URL, {
+                method: "POST", // Metode POST untuk mengirim data
+                headers: { "Content-Type": "application/json" }, // Header tipe konten JSON
+                body: JSON.stringify({ message }) // Kirim pesan dalam format JSON
+            }).then(() => {
+                appendMessage(message); // Tambahkan pesan ke tampilan chat
+                input.value = ""; // Kosongkan input setelah mengirim
+            }).catch(err => console.error("Gagal kirim pesan:", err)); // Tangani error jika gagal
+        }
+
+        // Menambahkan event listener untuk mengirim pesan saat tombol ENTER ditekan
+        document.getElementById("message-input").addEventListener("keydown", function (event) {
+            if (event.key === "Enter") {
+                event.preventDefault(); // Mencegah aksi default (submit form)
+                sendMessage(); // Panggil fungsi kirim pesan
+            }
+        });
+
+        // Panggil fetchMessages secara berkala untuk memperbarui pesan
+        setInterval(fetchMessages);
+        fetchMessages(); // Panggil fetchMessages pertama kali saat halaman dimuat
+    </script>
+
+</body>
+
+</html>
